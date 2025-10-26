@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from "react-redux";
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Grid from '@mui/material/Grid';
@@ -6,8 +7,27 @@ import Grid from '@mui/material/Grid';
 import { Post } from '../components/Post';
 import { TagsBlock } from '../components/TagsBlock';
 import { CommentsBlock } from '../components/CommentsBlock';
+import { fetchPosts, fetchTags } from '../Redux/slices/postsSlice';
+import Error from './Error'
+import { PostSkeleton } from '../components/Post/Skeleton'
 
 export const Home = () => {
+  const dispatch = useDispatch();
+  const { posts, tags } = useSelector(state => state.postsSlice);
+  console.log(posts)
+  const userData = useSelector(state => state.authSlice.isAuth.data);
+  console.log(userData)
+  // const isPostsLoading = posts.status === 'loading'; //будет приходить true или false
+
+
+  React.useEffect(() => {
+    dispatch(fetchPosts()); //возвращает action.payload
+    dispatch(fetchTags()); //возвращает action.payload
+  }, []);
+
+
+
+  const skeletons = [...new Array(5)].map((_, index) => <PostSkeleton key={index} />);// (_, index) - _ пустой массив 
   return (
     <>
       <Tabs style={{ marginBottom: 15 }} value={0} aria-label="basic tabs example">
@@ -16,26 +36,31 @@ export const Home = () => {
       </Tabs>
       <Grid container spacing={4}>
         <Grid xs={8} item>
-          {[...Array(5)].map(() => (
-            <Post
-              id={1}
-              title="Roast the code #1 | Rock Paper Scissors"
-              imageUrl="https://res.cloudinary.com/practicaldev/image/fetch/s--UnAfrEG8--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://dev-to-uploads.s3.amazonaws.com/uploads/articles/icohm5g0axh9wjmu4oc3.png"
-              user={{
-                avatarUrl:
-                  'https://res.cloudinary.com/practicaldev/image/fetch/s--uigxYVRB--/c_fill,f_auto,fl_progressive,h_50,q_auto,w_50/https://dev-to-uploads.s3.amazonaws.com/uploads/user/profile_image/187971/a5359a24-b652-46be-8898-2c5df32aa6e0.png',
-                fullName: 'Keff',
-              }}
-              createdAt={'12 июня 2022 г.'}
-              viewsCount={150}
-              commentsCount={3}
-              tags={['react', 'fun', 'typescript']}
-              isEditable
-            />
-          ))}
+          {posts.status === 'error' ? (<Error />) :
+            (posts.status === 'loaded' ?
+              (posts.items.map((obj, index) => (
+                <Post
+                  key={index}
+                  id={obj.post_id}
+                  title={obj.title}
+                  imageUrl={obj.image_url}
+                  user={{
+                    avatarUrl:
+                      'https://files.shapes.inc/api/files/avatar_4fa77530-234c-4bb0-9115-9d63e3c20af3.png',
+                    fullName: 'Keff',
+                  }}
+                  createdAt={obj.created_at}
+                  viewsCount={obj.views_count}
+                  commentsCount={3}
+                  tags={obj.tags}
+                  isEditable={userData?.user_id === obj.user_id}
+                />
+              )))
+              : (skeletons)
+            )}
         </Grid>
         <Grid xs={4} item>
-          <TagsBlock items={['react', 'typescript', 'заметки']} isLoading={false} />
+          <TagsBlock items={tags.items} status={tags.status} />
           <CommentsBlock
             items={[
               {
