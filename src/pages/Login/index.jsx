@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
-import { fetchAuth, isAuthData } from "../../Redux/slices/authSlice";
+import { fetchAuth, fetchAuthMe, isAuthData } from "../../Redux/slices/authSlice";
 
 import styles from "./Login.module.scss";
 
@@ -36,7 +36,9 @@ export const Login = () => {
 
 
   if (isAuth) {
-    return <Navigate to="/" /> //если есть данные от jwt об авторизации в redux, то перекинуть на главную страницу
+    dispatch(fetchAuthMe())
+    return <Navigate to="/" />; //если есть данные от jwt об авторизации в redux, то перекинуть на главную страницу
+
   }
 
   return (

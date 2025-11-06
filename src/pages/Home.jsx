@@ -14,10 +14,10 @@ import { PostSkeleton } from '../components/Post/Skeleton'
 export const Home = () => {
   const dispatch = useDispatch();
   const { posts, tags } = useSelector(state => state.postsSlice);
-  console.log(posts)
+  //console.log(posts)
   const userData = useSelector(state => state.authSlice.isAuth.data);
-  console.log(userData)
-  // const isPostsLoading = posts.status === 'loading'; //будет приходить true или false
+  //console.log(userData)
+  // const isPostsLoading = posts.status === 'loading'; //будет приходить true если posts.status === 'loading' или false если не равно
 
 
   React.useEffect(() => {
@@ -53,7 +53,7 @@ export const Home = () => {
                   viewsCount={obj.views_count}
                   commentsCount={3}
                   tags={obj.tags}
-                  isEditable={userData?.user_id === obj.user_id}
+                  isEditable={userData?.user_id === obj.user_id}//надо сделать асинхронно, т к значки не появляются сразу после авторизации
                 />
               )))
               : (skeletons)
