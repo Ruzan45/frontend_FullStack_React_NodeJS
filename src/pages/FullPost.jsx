@@ -1,28 +1,37 @@
 import React, { useState } from "react";
 import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCommentsPost } from "../Redux/slices/postsSlice";
+import { isAuthData } from "../Redux/slices/authSlice";
 import ReactMarkdown from 'react-markdown'
 
 import { Post } from "../components/Post";
-import { Index } from "../components/AddComment";
+import { AddComment } from "../components/AddComment";
 import { CommentsBlock } from "../components/CommentsBlock";
 import axios from "../axios";
 
 export const FullPost = () => {
+  const isAuth = useSelector(isAuthData);
   const { id } = useParams();
-  const [data, setData] = React.useState()
-  const [isLoading, setIsLoading] = React.useState(true)
+  const dispatch = useDispatch();
+  const [data, setData] = React.useState();
+  const [isLoading, setIsLoading] = React.useState(true);
   React.useEffect(() => {
-    axios.get(`/posts/${id}`).then(res => {
+    axios.get(`/posts/${id}`).then(res => {//запрашиваем пост
       setData(res.data);
       setIsLoading(false)
     }).catch((err) => {
       console.log(err);
       alert('Ошибка при получении статьи');
     });
+    dispatch(fetchCommentsPost(id)); //получаем комментарии
   }, [])
+  const { commentsPost } = useSelector(state => state.postsSlice);
+  const comments = commentsPost.items.comments;
   if (isLoading) {
     return <Post isLoading={isLoading} />
   }
+
   return (
     <>
       <Post
@@ -44,25 +53,10 @@ export const FullPost = () => {
         </p>
       </Post>
       <CommentsBlock
-        items={[
-          {
-            user: {
-              fullName: "Вася Пупкин",
-              avatarUrl: "https://mui.com/static/images/avatar/1.jpg",
-            },
-            text: "Это тестовый комментарий 555555",
-          },
-          {
-            user: {
-              fullName: "Иван Иванов",
-              avatarUrl: "https://mui.com/static/images/avatar/2.jpg",
-            },
-            text: "When displaying three lines or more, the avatar is not aligned at the top. You should set the prop to align the avatar at the top",
-          },
-        ]}
-        isLoading={false}
+        items={comments}
+        isLoading={commentsPost.status === 'loading'}
       >
-        <Index />
+        {isAuth && <AddComment />}
       </CommentsBlock>
     </>
   );

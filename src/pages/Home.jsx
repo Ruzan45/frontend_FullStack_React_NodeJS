@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -7,38 +7,37 @@ import Grid from '@mui/material/Grid';
 import { Post } from '../components/Post';
 import { TagsBlock } from '../components/TagsBlock';
 import { CommentsBlock } from '../components/CommentsBlock';
-import { fetchPosts, fetchTags } from '../Redux/slices/postsSlice';
+import { fetchPosts } from '../Redux/slices/postsSlice';
 import Error from './Error'
 import { PostSkeleton } from '../components/Post/Skeleton'
 
 export const Home = () => {
   const dispatch = useDispatch();
-  const { posts, tags } = useSelector(state => state.postsSlice);
+  const { posts, filteredPosts } = useSelector(state => state.postsSlice);
   //console.log(posts)
   const userData = useSelector(state => state.authSlice.isAuth.data);
   //console.log(userData)
   // const isPostsLoading = posts.status === 'loading'; //будет приходить true если posts.status === 'loading' или false если не равно
-
+  const [sort, setSort] = React.useState(0);
 
   React.useEffect(() => {
-    dispatch(fetchPosts()); //возвращает action.payload
-    dispatch(fetchTags()); //возвращает action.payload
-  }, []);
+    dispatch(fetchPosts(sort)); //возвращает action.payload
+  }, [sort]); //выполняем запрос при изменении переменной
 
-
+  const tagPosts = filteredPosts.items.length; //проверяем есть ли в filteredPosts с постами что нибудь
 
   const skeletons = [...new Array(5)].map((_, index) => <PostSkeleton key={index} />);// (_, index) - _ пустой массив 
   return (
     <>
-      <Tabs style={{ marginBottom: 15 }} value={0} aria-label="basic tabs example">
-        <Tab label="Новые" />
-        <Tab label="Популярные" />
+      <Tabs style={{ marginBottom: 15 }} value={sort} aria-label="basic tabs example">
+        <Tab onClick={() => setSort(0)} label="Новые" />
+        <Tab onClick={() => setSort(1)} label="Популярные" />
       </Tabs>
       <Grid container spacing={4}>
         <Grid xs={8} item>
-          {posts.status === 'error' ? (<Error />) :
-            (posts.status === 'loaded' ?
-              (posts.items.map((obj, index) => (
+          {(tagPosts ? filteredPosts : posts).status === 'error' ? (<Error />) :
+            ((tagPosts ? filteredPosts : posts).status === 'loaded' ?
+              ((tagPosts ? filteredPosts : posts).items.map((obj, index) => (
                 <Post
                   key={index}
                   id={obj.post_id}
@@ -60,7 +59,7 @@ export const Home = () => {
             )}
         </Grid>
         <Grid xs={4} item>
-          <TagsBlock items={tags.items} status={tags.status} />
+          <TagsBlock />
           <CommentsBlock
             items={[
               {

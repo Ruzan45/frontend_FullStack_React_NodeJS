@@ -7,7 +7,7 @@ import Button from "@mui/material/Button";
 import { useSelector } from "react-redux";
 
 
-export const Index = () => {
+export const AddComment = () => {
 
   const userData = useSelector(state => state.authSlice.isAuth.data);
   return (
@@ -15,7 +15,7 @@ export const Index = () => {
       <div className={styles.root}>
         <Avatar
           classes={{ root: styles.avatar }}
-          src={userData.avatar}
+          src={userData?.avatar}
         />
         <div className={styles.form}>
           <TextField

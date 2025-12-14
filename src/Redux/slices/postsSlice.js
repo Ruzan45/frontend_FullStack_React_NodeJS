@@ -1,10 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'; //createAsyncThunk - для асинхронного запроса
 import axios from '../../axios'; //импортируем аксиос
 
-export const fetchPosts = createAsyncThunk('/posts/fetchPosts', async () => {  //посты
-    const { data } = await axios.get('/posts'); //нужно вытащить дата их аксиос запроса
+export const fetchPosts = createAsyncThunk('/posts/fetchPosts', async (sort) => {  //посты
+    let post = '';
+    sort !== '' ? post = `/posts/sort/${sort}` : post = '/posts';
+    const { data } = await axios.get(post); //нужно вытащить дата их аксиос запроса
     return data; //возвращаем ответ от сервера в action.payload
 });
+
 export const fetchTags = createAsyncThunk('/posts/fetchTags', async () => {  //тэги
     const { data } = await axios.get('/tags'); //нужно вытащить дата их аксиос запроса
     return data; //возвращаем ответ от сервера в action.payload
@@ -12,6 +15,10 @@ export const fetchTags = createAsyncThunk('/posts/fetchTags', async () => {  //�
 export const fetchRemovePost = createAsyncThunk('/posts/fetchRemovePost', async (id) => { //удаление поста
     const { data } = await axios.delete(`/posts/${id}`); //нужно вытащить дата их аксиос запроса
     return data; //возвращаем ответ от сервера в action.payload
+});
+export const fetchCommentsPost = createAsyncThunk('/posts/fetchCommentsPost', async (id) => {
+    const { data } = await axios.get(`comments/${id}`);
+    return data
 });
 
 const initialState = {
@@ -23,12 +30,25 @@ const initialState = {
         items: [],
         status: 'loading',
     },
+    filteredPosts: {
+        items: [],
+        status: 'loading',
+    },
+    commentsPost: {
+        items: [],
+        status: 'loading',
+    },
 };
 
 const postsSlice = createSlice({
     name: 'posts',
     initialState,
-    reducers: {},
+    reducers: {
+        filterPostsTag(state, action) {
+            state.filteredPosts.items = action.payload;
+            state.filteredPosts.status = 'loaded';
+        }
+    },
     extraReducers: {
         //получение статей
         [fetchPosts.pending]: (state) => { //состояние загрузки, отловили состояние pending в Redux. Можно увидеть в расширении
@@ -43,6 +63,19 @@ const postsSlice = createSlice({
             state.posts.items = [];
             state.posts.status = 'error';
 
+        },
+        //получение статей
+        [fetchCommentsPost.pending]: (state) => { //состояние загрузки, отловили состояние pending в Redux. Можно увидеть в расширении
+            state.commentsPost.items = [];
+            state.commentsPost.status = 'loading';
+        },
+        [fetchCommentsPost.fulfilled]: (state, action) => { //если состояние загрузки fulfilled
+            state.commentsPost.items = action.payload; // значит в state засовываем данные из action.payload
+            state.commentsPost.status = 'loaded';
+        },
+        [fetchCommentsPost.rejected]: (state) => { //состояние загрузки
+            state.commentsPost.items = [];
+            state.commentsPost.status = 'error';
         },
         //получение тэгов
         [fetchTags.pending]: (state) => {
@@ -64,5 +97,7 @@ const postsSlice = createSlice({
         },
     },
 });
+
+export const { filterPostsTag } = postsSlice.actions;
 
 export default postsSlice.reducer;

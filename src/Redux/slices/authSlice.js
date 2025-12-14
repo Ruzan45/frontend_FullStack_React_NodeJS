@@ -27,7 +27,7 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         logout: (state) => {
-            state.isAuth.data = null; //создаём данные которые отпралятся при выходе из аккаунта
+            state.isAuth.data = null; //создаём данные которые отправятся при выходе из аккаунта
         }
     },
     extraReducers: {
